@@ -281,6 +281,18 @@
             padding: 4px 10px;
             flex-shrink: 0;
         }
+        .btn-gcal {
+            background: #4285F4;
+            color: white;
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            flex-shrink: 0;
+        }
+        .sale-item-btns {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
         .sale-empty {
             color: #999;
             font-size: 0.85rem;
@@ -453,6 +465,24 @@
         localStorage.setItem('rakuten_sales', JSON.stringify(SALES));
     }
 
+    function toGCalDate(dateStr) {
+        // "2025-05-09" → "20250509"
+        return dateStr.replace(/-/g, '');
+    }
+
+    function openGCal(index) {
+        const s = SALES[index];
+        const start = toGCalDate(s.start);
+        // 終了日はGoogleカレンダーが翌日扱いのため+1日
+        const endDate = new Date(s.end);
+        endDate.setDate(endDate.getDate() + 1);
+        const end = endDate.toISOString().slice(0,10).replace(/-/g,'');
+        const title = encodeURIComponent(s.name);
+        const details = encodeURIComponent('楽天セール管理アプリより登録');
+        const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${end}&details=${details}`;
+        window.open(url, '_blank');
+    }
+
     function renderSaleList() {
         const list = document.getElementById('sale-list');
         if (SALES.length === 0) {
@@ -465,7 +495,10 @@
                     <div class="sale-item-name">${s.name}</div>
                     <div class="sale-item-date">${s.start} 〜 ${s.end}</div>
                 </div>
-                <button class="btn-delete" onclick="deleteSale(${i})">削除</button>
+                <div class="sale-item-btns">
+                    <button class="btn-gcal" onclick="openGCal(${i})">📅 カレンダー</button>
+                    <button class="btn-delete" onclick="deleteSale(${i})">削除</button>
+                </div>
             </div>
         `).join('');
     }
